@@ -1,5 +1,6 @@
 package gonderilen_mesaj_yanlıs;
 import java.io.*;
+
 import java.net.Socket;
 
 public class Client {
@@ -43,7 +44,6 @@ public class Client {
             e.printStackTrace();
         }
 
-
     }
     private static void sendRequest(PrintWriter out, String request) {
         out.println(request);
@@ -76,8 +76,6 @@ public class Client {
             System.out.println("Error connecting to server on port " + port + ": " + e.getMessage());
         }
     }
-
-
 
 }
 

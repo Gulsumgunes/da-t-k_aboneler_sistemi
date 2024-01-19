@@ -177,13 +177,14 @@ public class Server3 {
 
     }
 
+
     private static class PingThread extends Thread {
-        private int serverId;
+
         private String host;
         private int port;
 
         public PingThread(int serverId, String host, int port) {
-            this.serverId = serverId;
+
             this.host = host;
             this.port = port;
         }
@@ -191,44 +192,20 @@ public class Server3 {
         public void run() {
             try {
                 while (true) {
-                    // Ping diğer sunucuya
                     try (Socket socket = new Socket(host, port)) {
-                        // Pong mesajını bekler
-                        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-
-                        out.println("PING");
-                        String pongResponse = in.readLine();
-
-                        if ("PONG".equals(pongResponse)) {
-                            System.out.println("Received PONG from Server" + (serverId % 3 + 1));
-                        }
-
-                        // Güncellenmiş aboneler listesini diğer sunuculara bildir
-                        for (int i = 1; i <= 3; i++) {
-                            if (i != serverId) {
-                                try (Socket notifySocket = new Socket("localhost", 5000 + i)) {
-                                    ObjectOutputStream outputStream = new ObjectOutputStream(
-                                            notifySocket.getOutputStream());
-                                    outputStream.writeObject(aboneler);
-                                    System.out.println("Sent updated aboneler list to Server" + i);
-                                } catch (IOException e) {
-                                    System.out.println("Failed to send updated aboneler list to Server" + i);
-                                }
-                            }
-                        }
-
+                        System.out.println("Pinged " + host + " on port " + port);
                     } catch (IOException e) {
                         System.out.println("Ping to " + host + " on port " + port + " failed, retrying...");
                     }
 
                     try {
-                        Thread.sleep(10000);
+                        Thread.sleep(10000); // Wait for 10 seconds before retrying
                     } catch (InterruptedException ie) {
                         System.out.println("Ping thread interrupted: " + ie.getMessage());
-                        break;
+                        break; // Optional: exit the loop if the thread is interrupted
                     }
                 }
+
             } catch (Exception e) {
                 System.out.println("Unexpected error: " + e.getMessage());
             }
