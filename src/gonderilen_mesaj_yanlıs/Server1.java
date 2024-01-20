@@ -56,6 +56,7 @@ public class Server1 {
 
                 message = in.readLine();
 
+                if (message != null) {
                 String[] parts = message.split(" ");
                 String action = parts[0];
 
@@ -94,6 +95,10 @@ public class Server1 {
                         out.println("99 HATA");
                         break;
                 }
+            } else {
+                // Message null ise uygun bir hata mesajı döndür
+                out.println("99 HATA");
+            }
 
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -105,7 +110,7 @@ public class Server1 {
                 }
             }
 
-            System.out.println("Received message on Server" + serverId + "(" + currentThread().getId()
+            System.out.println("Received message on Server" + serverId + "(" + currentThread()
                     + ") from client: " + message);
         }
 

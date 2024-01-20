@@ -44,9 +44,7 @@ public class Client {
 
 
     }
-    private static void sendRequest(PrintWriter out, String request) {
-        out.println(request);
-    }
+
 
     private static void sendSerializedObject(Socket socket, Aboneler aboneler) throws IOException {
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
