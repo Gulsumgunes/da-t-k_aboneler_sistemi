@@ -9,17 +9,17 @@ import java.util.ArrayList;
 public class Server3 {
     private static final int PORT = 5003;
     private static final String SERVER_HOST = "localhost";
-    private static final int SERVER_ID = 3;
+    private static final int SERVER_ID = 1;
 
     private static Aboneler aboneler;
 
     public static void main(String[] args) throws IOException {
         aboneler = new Aboneler(100);
-        aboneler.setAboneler(new ArrayList<>()); // Initialize aboneler list
+        aboneler.setAboneler(new ArrayList<>(100)); // Initialize aboneler list
         aboneler.getAboneler().add(false); // Örnek olarak bir abone ekledik, gerektiğiniz sayıda ekleyebilirsiniz
 
         ServerSocket serverSocket = new ServerSocket(PORT, 50, InetAddress.getByName(SERVER_HOST));
-        System.out.println("Server2 is running on port " + PORT);
+        System.out.println("Server3 is running on port " + PORT);
 
         new PingThread(SERVER_ID, "localhost", 5001).start(); // Ping Server2
         new PingThread(SERVER_ID, "localhost", 5002).start(); // Ping Server3
@@ -150,30 +150,41 @@ public class Server3 {
 
 
         private String handleSerilestirilmisNesne(Aboneler receivedAboneler) {
+            try {
+                // İstemciden alınan serileştirilmiş nesneyi işle
+                // Eğer işlem başarılıysa "55 TAMM" döndür, aksi takdirde uygun bir hata mesajı
 
-            // Yapılacak işlemleri buraya ekleyin
-            // receivedAboneler nesnesini kontrol edin ve güncellemeleri yapın
-            // Eğer işlem başarılıysa "55 TAMM" döndürün, aksi takdirde uygun bir hata
-            // mesajı
-            return "55 TAMM";
+                // Örnek olarak sadece receivedAboneler'ı print ediyoruz, gerçek işlemleri buraya ekleyin
+                System.out.println("Received serialized object from client: " + receivedAboneler);
+
+                // Gerçek işlemleri buraya ekleyin, örneğin:
+                // aboneler.handleReceivedAboneler(receivedAboneler);
+
+                return "55 TAMM";
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "99 HATA"; // Hata durumunda uygun bir hata mesajı döndür
+            }
         }
 
         private void notifyAbonelerGuncellemesi() {
-            // Diğer sunuculara güncellenmiş aboneler listesini bildir
-            for (int i = 1; i <= 3; i++) {
-                if (i != serverId) {
-                    try (Socket notifySocket = new Socket("localhost", 5000 + i)) {
-                        ObjectOutputStream outputStream = new ObjectOutputStream(notifySocket.getOutputStream());
-                        outputStream.writeObject(aboneler);
-                        aboneler.printAbonelerListesi();
+        // Diğer sunuculara güncellenmiş aboneler listesini bildir
+        for (int i = 1; i <=3; i++) {
+            if (i != serverId) {
+                try (Socket notifySocket = new Socket("localhost", 5000 + i);
+                     ObjectOutputStream outputStream = new ObjectOutputStream(notifySocket.getOutputStream())) {
 
-                        System.out.println("Sent updated aboneler list to Server" + i);
-                    } catch (IOException e) {
-                        System.out.println("Failed to send updated aboneler list to Server" + i);
-                    }
+                    outputStream.writeObject(aboneler);
+                    aboneler.printAbonelerListesi();
+                    System.out.println();
+                    System.out.println("Sent updated aboneler list to Server" + i);
+
+                } catch (IOException e) {
+                    System.out.println("Failed to send updated aboneler list to Server" + i);
                 }
             }
         }
+    }
 
     }
 
@@ -199,10 +210,10 @@ public class Server3 {
                     }
 
                     try {
-                        Thread.sleep(10000); // Wait for 10 seconds before retrying
+                        Thread.sleep(10000); // 10 saniye bekleyin, tekrar denemeden önce
                     } catch (InterruptedException ie) {
                         System.out.println("Ping thread interrupted: " + ie.getMessage());
-                        break; // Optional: exit the loop if the thread is interrupted
+                        break; // İsteğe bağlı: eğer thread kesilirse döngüden çıkın
                     }
                 }
 

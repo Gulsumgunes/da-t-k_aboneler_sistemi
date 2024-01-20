@@ -6,6 +6,12 @@ import java.util.List;
 public class Aboneler implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    private long lastUpdatedEpochMiliSeconds;
+    private List<Boolean> abonelerListesi;
+    private List<Boolean> girisYapanlarListesi;
+
+
+
     Aboneler(int aboneSayisi) {
         lastUpdatedEpochMiliSeconds = 0;
         abonelerListesi = new ArrayList<>(100);
@@ -32,11 +38,6 @@ public class Aboneler implements Serializable {
 
     }
 
-
-    private long lastUpdatedEpochMiliSeconds;
-    private List<Boolean> abonelerListesi;
-    private List<Boolean> girisYapanlarListesi;
-
     public long getEpochMiliSeconds() {
         return lastUpdatedEpochMiliSeconds;
     }
@@ -62,25 +63,29 @@ public class Aboneler implements Serializable {
     }
 
     // Senkronize abone durumu güncelleme
-    public void updateAboneDurumu(int aboneNum, boolean durum) {
-
+    public synchronized void updateAboneDurumu(int aboneNum, boolean durum) {
         abonelerListesi.set(aboneNum - 1, durum);
+        updateLastUpdatedEpoch();
     }
 
-    public void updateGirisDurumu(int girisNum, boolean durum) {
+    public synchronized void updateGirisDurumu(int girisNum, boolean durum) {
         girisYapanlarListesi.set(girisNum - 1, durum);
+        updateLastUpdatedEpoch();
     }
-
 
 
     // Yeni metod: Aboneler listesini ekrana yazdırma
     public synchronized void printAbonelerListesi() {
+        // Senkronize aboneler listesini ekrana yazdırma
         System.out.println("Aboneler Listesi:");
         for (int i = 0; i < abonelerListesi.size(); i++) {
             System.out.println("Abone " + (i + 1) + ": " + abonelerListesi.get(i));
         }
     }
 
+    private synchronized void updateLastUpdatedEpoch() {
+        lastUpdatedEpochMiliSeconds = System.currentTimeMillis();
+    }
 
 
 

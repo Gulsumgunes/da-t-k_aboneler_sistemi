@@ -152,38 +152,79 @@ public class Server1 {
 
 
         private String handleSerilestirilmisNesne(Aboneler receivedAboneler) {
+            try {
+                // İstemciden alınan serileştirilmiş nesneyi işle
+                // Eğer işlem başarılıysa "55 TAMM" döndür, aksi takdirde uygun bir hata mesajı
 
-                // receivedAboneler nesnesini kontrol edin ve güncellemeleri yapın
-                // Eğer işlem başarılıysa "55 TAMM" döndürün, aksi takdirde uygun bir hata mesajı
+                // Örnek olarak sadece receivedAboneler'ı print ediyoruz, gerçek işlemleri buraya ekleyin
+                System.out.println("Received serialized object from client: " + receivedAboneler);
 
+                // Gerçek işlemleri buraya ekleyin, örneğin:
+                // aboneler.handleReceivedAboneler(receivedAboneler);
 
-
-
-            // Yapılacak işlemleri buraya ekleyin
-            // receivedAboneler nesnesini kontrol edin ve güncellemeleri yapın
-            // Eğer işlem başarılıysa "55 TAMM" döndürün, aksi takdirde uygun bir hata
-            // mesajı
-            return "55 TAMM";
-        }
-
-        private void notifyAbonelerGuncellemesi() {
-            // Diğer sunuculara güncellenmiş aboneler listesini bildir
-            for (int i = 1; i <= 3; i++) {
-                if (i != serverId) {
-                    try (Socket notifySocket = new Socket("localhost", 5000 + i)) {
-                        ObjectOutputStream outputStream = new ObjectOutputStream(notifySocket.getOutputStream());
-                        outputStream.writeObject(aboneler);
-                        aboneler.printAbonelerListesi();
-                        System.out.println();
-                        System.out.println("Sent updated aboneler list to Server" + i);
-                    } catch (IOException e) {
-                        System.out.println("Failed to send updated aboneler list to Server" + i);
-                    }
-                }
+                return "55 TAMM";
+            } catch (Exception e) {
+                e.printStackTrace();
+                return "99 HATA"; // Hata durumunda uygun bir hata mesajı döndür
             }
         }
 
+        private void notifyAbonelerGuncellemesi() {
+        // Diğer sunuculara güncellenmiş aboneler listesini bildir
+        for (int i = 1; i <=3; i++) {
+            if (i != serverId) {
+                try (Socket notifySocket = new Socket("localhost", 5000 + i);
+                     ObjectOutputStream outputStream = new ObjectOutputStream(notifySocket.getOutputStream())) {
+
+                    outputStream.writeObject(aboneler);
+                    aboneler.printAbonelerListesi();
+                    System.out.println();
+                    System.out.println("Sent updated aboneler list to Server" + i);
+
+                } catch (IOException e) {
+                    System.out.println("Failed to send updated aboneler list to Server" + i);
+                }
+            }
+        }
     }
+
+    }
+
+
+    private static class PingThread extends Thread {
+
+        private String host;
+        private int port;
+
+        public PingThread(int serverId, String host, int port) {
+
+            this.host = host;
+            this.port = port;
+        }
+
+        public void run() {
+            try {
+                while (true) {
+                    try (Socket socket = new Socket(host, port)) {
+                        System.out.println("Pinged " + host + " on port " + port);
+                    } catch (IOException e) {
+                        System.out.println("Ping to " + host + " on port " + port + " failed, retrying...");
+                    }
+
+                    try {
+                        Thread.sleep(10000); // 10 saniye bekleyin, tekrar denemeden önce
+                    } catch (InterruptedException ie) {
+                        System.out.println("Ping thread interrupted: " + ie.getMessage());
+                        break; // İsteğe bağlı: eğer thread kesilirse döngüden çıkın
+                    }
+                }
+
+            } catch (Exception e) {
+                System.out.println("Unexpected error: " + e.getMessage());
+            }
+        }
+    }
+}
 
     // private static class PingThread extends Thread {
     //     private int serverId;
@@ -242,40 +283,15 @@ public class Server1 {
     //         }
     //     }
     // }
-    private static class PingThread extends Thread {
 
-        private String host;
-        private int port;
 
-        public PingThread(int serverId, String host, int port) {
 
-            this.host = host;
-            this.port = port;
-        }
 
-        public void run() {
-            try {
-                while (true) {
-                    try (Socket socket = new Socket(host, port)) {
-                        System.out.println("Pinged " + host + " on port " + port);
-                    } catch (IOException e) {
-                        System.out.println("Ping to " + host + " on port " + port + " failed, retrying...");
-                    }
 
-                    try {
-                        Thread.sleep(10000); // Wait for 10 seconds before retrying
-                    } catch (InterruptedException ie) {
-                        System.out.println("Ping thread interrupted: " + ie.getMessage());
-                        break; // Optional: exit the loop if the thread is interrupted
-                    }
-                }
 
-            } catch (Exception e) {
-                System.out.println("Unexpected error: " + e.getMessage());
-            }
-        }
-    }
-}
+
+
+
 // import java.io.*;
 // import java.net.ServerSocket;
 // import java.net.Socket;
