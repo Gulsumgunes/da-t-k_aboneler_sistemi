@@ -1,4 +1,4 @@
-package gonderilen_mesaj_yanlıs;
+
 import java.io.*;
 
 import java.net.Socket;
@@ -12,14 +12,8 @@ public class Client {
     private static final int SERVER3_PORT = 5003;
 
     public static void main(String[] args) throws IOException {
-        Aboneler aboneler = new Aboneler(100);
-        aboneler.updateAboneDurumu(1, true);
-        aboneler.updateAboneDurumu(2, true);
+        Aboneler aboneler = new Aboneler(20);
 
-        // Socket socket = new Socket("localhost", 5001); // Bağlanılacak server portunu değiştirin
-
-        // BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        // PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
         sendAndReceiveMessage(SERVER1_HOST, SERVER1_PORT, "ABONOL 1", aboneler);
         sendAndReceiveMessage(SERVER2_HOST, SERVER2_PORT, "ABONPTAL 2", aboneler);
         sendAndReceiveMessage(SERVER3_HOST, SERVER3_PORT, "GIRIS ISTMC 33", aboneler);
@@ -36,20 +30,14 @@ public class Client {
         sendAndReceiveMessage(SERVER2_HOST, SERVER2_PORT, "ABONPTAL 2", aboneler);
         sendAndReceiveMessage(SERVER3_HOST, SERVER3_PORT, "GIRIS ISTMC 33", aboneler);
         sendAndReceiveMessage(SERVER1_HOST, SERVER1_PORT, "CIKIS ISTMC 99", aboneler);
-        // Örnek serileştirilmiş nesne gönderimi:
-        // sendSerializedObject(socket, aboneler);
-
-        // // // Sunucu yanıtlarını kontrol etme:
-        // receiveResponse(in);
-
 
     }
-
 
     private static void sendSerializedObject(Socket socket, Aboneler aboneler) throws IOException {
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
         // Güncellenmiş Aboneler nesnesini gönder
         objectOutputStream.writeObject(aboneler);
+        objectOutputStream.flush(); // ObjectOutputStream'ı sıfırla ve tamponu temizle
     }
 
     private static void receiveResponse(BufferedReader in) throws IOException {
@@ -61,9 +49,10 @@ public class Client {
     }
 
     private static void sendAndReceiveMessage(String host, int port, String message, Aboneler aboneler) {
-        try (Socket socket = new Socket(host, port);
-             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+        try (
+                Socket socket = new Socket(host, port);
+                PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+                BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
 
             // Sunucuya mesajı gönder
             out.println(message);
@@ -74,13 +63,26 @@ public class Client {
             // Sunucudan cevabı al
             receiveResponse(in);
 
+            // Girilen işleme göre aboneler listesini güncelle
+            if (message.startsWith("ABONOL")) {
+                int aboneNum = Integer.parseInt(message.split(" ")[1]);
+                aboneler.updateAboneDurumu(aboneNum, true);
+            } else if (message.startsWith("ABONPTAL")) {
+                int iptalNum = Integer.parseInt(message.split(" ")[1]);
+                aboneler.updateAboneDurumu(iptalNum, false);
+            } else if (message.startsWith("GIRIS")) {
+                int girisNum = Integer.parseInt(message.split(" ")[2]);
+                aboneler.updateGirisDurumu(girisNum, true);
+            } else if (message.startsWith("CIKIS")) {
+                int cikisNum = Integer.parseInt(message.split(" ")[2]);
+                aboneler.updateGirisDurumu(cikisNum, false);
+            }
+
+            aboneler.printAbonelerListesi();
+
         } catch (IOException e) {
             System.out.println("Error connecting to server on port " + port + ": " + e.getMessage());
         }
     }
 
-
-
-
 }
-

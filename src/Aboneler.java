@@ -1,7 +1,7 @@
-package gonderilen_mesaj_yanlıs;
+
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class Aboneler implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -10,17 +10,15 @@ public class Aboneler implements Serializable {
     private List<Boolean> abonelerListesi;
     private List<Boolean> girisYapanlarListesi;
 
-
-
     Aboneler(int aboneSayisi) {
         lastUpdatedEpochMiliSeconds = 0;
-        abonelerListesi = new ArrayList<>(100);
-        girisYapanlarListesi = new ArrayList<>(100);
-        initializeLists();
+        abonelerListesi = new CopyOnWriteArrayList<>();
+        girisYapanlarListesi = new CopyOnWriteArrayList<>();
+        initializeLists(aboneSayisi);
     }
 
-    private void initializeLists() {
-        for (int i = 0; i < 3; i++) {
+    private void initializeLists(int aboneSayisi) {
+        for (int i = 0; i < aboneSayisi; i++) {
             abonelerListesi.add(false); // Varsayılan olarak abone değiller
             girisYapanlarListesi.add(false); // Varsayılan olarak giriş yapmamışlar
         }
@@ -33,8 +31,8 @@ public class Aboneler implements Serializable {
             girisYapanlarListesi.set(i, false);
         }
 
-        System.out.println(abonelerListesi);
-        System.out.println(girisYapanlarListesi);
+        // System.out.println(abonelerListesi);
+        // System.out.println(girisYapanlarListesi);
 
     }
 
@@ -62,6 +60,12 @@ public class Aboneler implements Serializable {
         this.girisYapanlarListesi = girisYapanlarListesi;
     }
 
+    public synchronized void updateAbonelerList(Aboneler receivedAboneler) {
+        this.abonelerListesi = receivedAboneler.getAboneler();
+        this.girisYapanlarListesi = receivedAboneler.getGirisYapanlarListesi();
+        updateLastUpdatedEpoch();
+    }
+
     // Senkronize abone durumu güncelleme
     public synchronized void updateAboneDurumu(int aboneNum, boolean durum) {
         abonelerListesi.set(aboneNum - 1, durum);
@@ -72,7 +76,6 @@ public class Aboneler implements Serializable {
         girisYapanlarListesi.set(girisNum - 1, durum);
         updateLastUpdatedEpoch();
     }
-
 
     // Yeni metod: Aboneler listesini ekrana yazdırma
     public synchronized void printAbonelerListesi() {
@@ -87,8 +90,4 @@ public class Aboneler implements Serializable {
         lastUpdatedEpochMiliSeconds = System.currentTimeMillis();
     }
 
-
-
-
-}    // Senkronize giriş durumu güncelleme
-
+}
